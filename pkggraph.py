@@ -35,6 +35,13 @@ def plot_package_nodes(graph, package_list):
             graph.node(pkg_name, color='lightblue', style='filled')
 
 
+def strip_pkg_name(name):
+    name = name.split("<", maxsplit=1)[0]
+    name = name.split(">", maxsplit=1)[0]
+    name = name.split("=", maxsplit=1)[0]
+    return name
+
+
 def plot_package_dependencies(graph, package_list):
     # FIXME: In split packages, we might have to add pkgbase-dependencies and pkgname-dependencies together
     # FIXME: We're ignoring makedepends
@@ -50,7 +57,7 @@ def plot_package_dependencies(graph, package_list):
                 dependencies = [dependencies]
             for dependency in dependencies:
                 for name in pkg_name:
-                    graph.edge(name, dependency)
+                    graph.edge(name, strip_pkg_name(dependency))
 
 
 def main():
@@ -75,7 +82,7 @@ def main():
     plot_package_dependencies(dot, core_packages)
     plot_package_dependencies(dot, extra_packages)
     plot_package_dependencies(dot, community_packages)
-    
+
     dot.render("output", view=True)
 
 
