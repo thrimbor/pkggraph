@@ -56,8 +56,9 @@ def plot_package_dependencies(graph, package_list):
             if not isinstance(dependencies, list):
                 dependencies = [dependencies]
             for dependency in dependencies:
-                for name in pkg_name:
-                    graph.edge(name, strip_pkg_name(dependency))
+                if len(dependency.strip()) > 0:
+                    for name in pkg_name:
+                        graph.edge(name, strip_pkg_name(dependency))
 
 
 def main():
