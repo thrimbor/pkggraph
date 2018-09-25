@@ -112,8 +112,31 @@ def main():
 
     os.chdir(run_path)
 
-    dot = graphviz.Digraph("PKGBUILD dependecy graph", strict=True)
+    dot = graphviz.Digraph("PKGBUILD dependency (without makedepends) graph", strict=True)
+    plot_package_nodes(dot, core_packages)
+    plot_package_nodes(dot, extra_packages)
+    plot_package_nodes(dot, community_packages)
+    plot_provides(dot, core_packages)
+    plot_provides(dot, extra_packages)
+    plot_provides(dot, community_packages)
+    plot_package_dependencies(dot, core_packages)
+    plot_package_dependencies(dot, extra_packages)
+    plot_package_dependencies(dot, community_packages)
+    dot.render("dep_only")
 
+    dot = graphviz.Digraph("PKGBUILD makedepends graph", strict=True)
+    plot_package_nodes(dot, core_packages)
+    plot_package_nodes(dot, extra_packages)
+    plot_package_nodes(dot, community_packages)
+    plot_provides(dot, core_packages)
+    plot_provides(dot, extra_packages)
+    plot_provides(dot, community_packages)
+    plot_package_makedepends(dot, core_packages)
+    plot_package_makedepends(dot, extra_packages)
+    plot_package_makedepends(dot, community_packages)
+    dot.render("makedepends_only")
+
+    dot = graphviz.Digraph("PKGBUILD dependency graph", strict=True)
     plot_package_nodes(dot, core_packages)
     plot_package_nodes(dot, extra_packages)
     plot_package_nodes(dot, community_packages)
@@ -126,8 +149,7 @@ def main():
     plot_package_makedepends(dot, core_packages)
     plot_package_makedepends(dot, extra_packages)
     plot_package_makedepends(dot, community_packages)
-
-    dot.render("output", view=True)
+    dot.render("dep_combined")
 
 
 main()
