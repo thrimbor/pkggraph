@@ -35,6 +35,24 @@ def plot_package_nodes(graph, package_list):
             graph.node(pkg_name, color='lightblue', style='filled')
 
 
+def plot_provides(graph, package_list):
+    for pkg in package_list:
+        pkg_name = pkg.content.get("pkgname")
+        if not isinstance(pkg_name, list):
+            pkg_name = [pkg_name]
+
+        provides = pkg.content.get("provides")
+        if provides:
+            if not isinstance(provides, list):
+                provides = [provides]
+            for p in provides:
+                p = strip_pkg_name(p)
+                graph.node(p, color='lightblue', style='filled', shape='box')
+
+                for pk in pkg_name:
+                    graph.edge(p, pk)
+
+
 def strip_pkg_name(name):
     name = name.split("<", maxsplit=1)[0]
     name = name.split(">", maxsplit=1)[0]
@@ -61,6 +79,25 @@ def plot_package_dependencies(graph, package_list):
                         graph.edge(name, strip_pkg_name(dependency))
 
 
+def plot_package_makedepends(graph, package_list):
+    # FIXME: In split packages, we might have to add pkgbase-dependencies and pkgname-dependencies together
+    # FIXME: We're ignoring makedepends
+    # FIXME: We're ignoring checkdepends
+    for pkg in package_list:
+        pkg_name = pkg.content.get("pkgname")
+        if not isinstance(pkg_name, list):
+            pkg_name = [pkg_name]
+
+        dependencies = pkg.content.get("makedepends")
+        if dependencies:
+            if not isinstance(dependencies, list):
+                dependencies = [dependencies]
+            for dependency in dependencies:
+                if len(dependency.strip()) > 0:
+                    for name in pkg_name:
+                        graph.edge(name, strip_pkg_name(dependency), color='red')
+
+
 def main():
     root_path = "/home/venom/Sync_ArchPPC/new_arch/packages"
     run_path = os.getcwd()
@@ -80,9 +117,15 @@ def main():
     plot_package_nodes(dot, core_packages)
     plot_package_nodes(dot, extra_packages)
     plot_package_nodes(dot, community_packages)
+    plot_provides(dot, core_packages)
+    plot_provides(dot, extra_packages)
+    plot_provides(dot, community_packages)
     plot_package_dependencies(dot, core_packages)
     plot_package_dependencies(dot, extra_packages)
     plot_package_dependencies(dot, community_packages)
+    plot_package_makedepends(dot, core_packages)
+    plot_package_makedepends(dot, extra_packages)
+    plot_package_makedepends(dot, community_packages)
 
     dot.render("output", view=True)
 
