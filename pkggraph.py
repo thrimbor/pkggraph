@@ -1,5 +1,9 @@
 #!/bin/env python3
 
+import uuid
+from joblib import Parallel, delayed
+from tqdm import tqdm
+import multiprocessing
 import lzma
 import tarfile
 import pkgbuild
@@ -30,24 +34,27 @@ def get_all_provides(rootpath):
     provideslist = []
 
     flist = [f for f in glob.iglob(rootpath + "/*/*.pkg.tar.xz", recursive=True)]
-    for c, f in enumerate(flist):
-        provideslist += pkg_to_provideslist(f)
-        print("\rbuilt packages scanned: " + str(c) + "/" + str(len(flist)) + "      ", end='')
+    provideslist_list = [pkg_to_provideslist(f) for f in tqdm(flist)]
+
+    for l in provideslist_list:
+        provideslist += l
+
     return list(set(provideslist))
 
 
 def readpkg(pkgbuild_path):
+    filename = "/tmp/srcinfo" + str(uuid.uuid4().hex)
     os.chdir(pkgbuild_path)
-    os.system("makepkg --printsrcinfo >/tmp/srcinfo")
-    return pkgbuild.SRCINFO("/tmp/srcinfo")
+    os.system("makepkg --printsrcinfo >" + filename)
+    srcinfo = pkgbuild.SRCINFO(filename)
+    os.remove(filename)
+    return srcinfo
 
 
 def read_pkgbuilds(path, name):
     packages = []
     flist = [f for f in glob.iglob(path + "/*/PKGBUILD", recursive=True)]
-    for c, f in enumerate(flist):
-        packages.append(readpkg(os.path.dirname(f)))
-        print("\r" + name + ": " + str(c) + "/" + str(len(flist)) + "      ", end='')
+    packages = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(readpkg)(os.path.dirname(f)) for f in tqdm(flist))
     return packages
 
 
