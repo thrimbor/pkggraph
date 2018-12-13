@@ -172,6 +172,22 @@ def plot_package_makedepends(graph, all_nodes, package_list):
                         # graph.edge(name, strip_pkg_name(dependency), color='red')
 
 
+def mark_buildable(graph, all_nodes):
+    for nodename in all_nodes:
+        v = all_nodes[str(nodename)]
+        if graph.vertex_properties['vcolor'][v] == 'lightblue':
+            # Package is known, but not built yet
+            buildable = True
+            for on in v.out_neighbors():
+                if graph.vertex_properties['vcolor'][on] != '#003ea3':
+                    if graph.vertex_properties['pkgname'][on] != 'glibc'\
+                            and graph.vertex_properties['pkgname'][on] != 'gcc-libs':
+                        buildable = False
+
+            if buildable:
+                graph.vertex_properties['vcolor'][v] = 'green'
+
+
 def main():
     builtpkg_root = "/home/venom/Sync_ArchPPC/new_arch/native_stage1_g5"
     root_path = "/home/venom/Sync_ArchPPC/new_arch/packages"
@@ -211,6 +227,9 @@ def main():
     for k in all_nodes:
         if k in provided_packages:
             dot.vertex_properties['vcolor'][all_nodes[k]] = '#003ea3'
+
+    # mark buildable packages
+    mark_buildable(dot, all_nodes)
 
     pos = graph_tool.arf_layout(dot)
     graph_tool.graph_draw(dot, output_size=(16000, 16000), output="dep_combined.pdf",
